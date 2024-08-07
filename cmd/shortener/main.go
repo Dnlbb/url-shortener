@@ -37,11 +37,11 @@ func master(w http.ResponseWriter, r *http.Request) {
 
 func fpost(w http.ResponseWriter, r *http.Request) {
 
-	contentType := r.Header.Get("Content-Type")
-	if contentType != "text/plain" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	// contentType := r.Header.Get("Content-Type")
+	// if contentType != "text/plain" {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -70,10 +70,10 @@ func generateShortUrl(url string) string {
 
 func fget(w http.ResponseWriter, r *http.Request) {
 
-	contentType := r.Header.Get("Content-Type")
-	if contentType != "text/plain" {
-		w.WriteHeader(http.StatusBadRequest)
-	}
+	// contentType := r.Header.Get("Content-Type")
+	// if contentType != "text/plain" {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// }
 
 	re := regexp.MustCompile(`^/([a-zA-Z0-9]+)$`)
 	matches := re.FindStringSubmatch(r.URL.Path)
