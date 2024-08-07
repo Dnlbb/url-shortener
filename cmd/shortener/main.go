@@ -18,7 +18,7 @@ var (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", fpost)
-	mux.HandleFunc("/", fget)
+	mux.HandleFunc("/id", fget)
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
 		panic(err)
@@ -61,7 +61,7 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 func generateShortUrl(url string) string {
 	hash := sha1.New()
 	hash.Write([]byte(url))
-	return hex.EncodeToString(hash.Sum(nil))
+	return hex.EncodeToString(hash.Sum(nil))[:8]
 }
 
 func fget(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +75,7 @@ func fget(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	re := regexp.MustCompile(`^/([a-zA-Z0-9]+)$`)
+	re := regexp.MustCompile(`^/id([a-zA-Z0-9]+)$`)
 	matches := re.FindStringSubmatch(r.URL.Path)
 	if len(matches) != 2 {
 		w.WriteHeader(http.StatusBadRequest)
