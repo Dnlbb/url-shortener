@@ -18,8 +18,8 @@ var (
 
 func main() {
 	mux := http.NewServeMux()
-	http.HandleFunc("/", fpost)
-	http.HandleFunc("/{id}", fget)
+	mux.HandleFunc("/", fpost)
+	mux.HandleFunc("/{id}", fget)
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
 		panic(err)
@@ -29,16 +29,19 @@ func main() {
 func fpost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "text/plain" {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	originalUrl := string(body)
@@ -64,6 +67,7 @@ func generateShortUrl(url string) string {
 func fget(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	contentType := r.Header.Get("Content-Type")
@@ -80,6 +84,7 @@ func fget(w http.ResponseWriter, r *http.Request) {
 
 	if !exists {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	w.Header().Set("Location", originalURL)
