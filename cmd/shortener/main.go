@@ -49,11 +49,11 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalUrl := string(body)
-	shortURL := generateShortUrl(originalUrl)
+	originalURL := string(body)
+	shortURL := generateShortURL(originalURL)
 
 	mu.Lock()
-	urlStorage[shortURL] = originalUrl
+	urlStorage[shortURL] = originalURL
 	mu.Unlock()
 
 	response := fmt.Sprintf("http://localhost:8080/%s", shortURL)
@@ -62,7 +62,7 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response))
 }
 
-func generateShortUrl(url string) string {
+func generateShortURL(url string) string {
 	hash := sha1.New()
 	hash.Write([]byte(url))
 	return hex.EncodeToString(hash.Sum(nil))[:8]
