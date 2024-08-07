@@ -16,20 +16,26 @@ var (
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", fpost)
-	mux.HandleFunc("/id", fget)
-	err := http.ListenAndServe(`:8080`, mux)
+	http.HandleFunc("/", master)
+	err := http.ListenAndServe(`:8080`, nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func fpost(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+func master(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case r.Method == http.MethodPost:
+		fpost(w, r)
+	case r.Method == http.MethodGet:
+		fget(w, r)
+	default:
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+}
+
+func fpost(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "text/plain" {
@@ -65,17 +71,13 @@ func generateShortUrl(url string) string {
 }
 
 func fget(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "text/plain" {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	re := regexp.MustCompile(`^/id([a-zA-Z0-9]+)$`)
+	re := regexp.MustCompile(`^/([a-zA-Z0-9]+)$`)
 	matches := re.FindStringSubmatch(r.URL.Path)
 	if len(matches) != 2 {
 		w.WriteHeader(http.StatusBadRequest)
