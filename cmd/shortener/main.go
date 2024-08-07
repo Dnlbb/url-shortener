@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"sync"
-
-	"github.com/gorilla/mux"
 )
 
 var (
@@ -19,7 +18,7 @@ var (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", fpost)
-	mux.HandleFunc("/{id}", fget)
+	mux.HandleFunc("/", fget)
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
 		panic(err)
@@ -43,6 +42,7 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	originalUrl := string(body)
 	shortURL := generateShortUrl(originalUrl)
@@ -75,8 +75,13 @@ func fget(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	vars := mux.Vars(r)
-	shortURL := vars["id"]
+	re := regexp.MustCompile(`^/([a-zA-Z0-9]+)$`)
+	matches := re.FindStringSubmatch(r.URL.Path)
+	if len(matches) != 2 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	shortURL := matches[1]
 
 	mu.RLock()
 	originalURL, exists := urlStorage[shortURL]
