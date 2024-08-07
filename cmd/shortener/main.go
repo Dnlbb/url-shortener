@@ -48,7 +48,6 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
 	originalUrl := string(body)
 	shortURL := generateShortUrl(originalUrl)
@@ -59,7 +58,6 @@ func fpost(w http.ResponseWriter, r *http.Request) {
 
 	response := fmt.Sprintf("http://localhost:8080/%s", shortURL)
 	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(response)))
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(response))
 }
