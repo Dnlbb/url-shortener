@@ -1,97 +1,18 @@
 package main
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
-	"fmt"
-	"io"
 	"net/http"
-	"regexp"
-	"sync"
-)
 
-var (
-	urlStorage = make(map[string]string)
-	mu         sync.RWMutex
+	"github.com/Dnlbb/url-shortener/cmd/handlers"
+	"github.com/Dnlbb/url-shortener/cmd/storage"
 )
 
 func main() {
-	http.HandleFunc("/", master)
+	repo := storage.NewInMemoryStorage() // Создаем новое хранилище
+	handler := handlers.NewHandler(repo)
+	http.HandleFunc("/", handler.Master)
 	err := http.ListenAndServe(`:8080`, nil)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func master(w http.ResponseWriter, r *http.Request) {
-	switch {
-	case r.Method == http.MethodPost:
-		fpost(w, r)
-	case r.Method == http.MethodGet:
-		fget(w, r)
-	default:
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-}
-
-func fpost(w http.ResponseWriter, r *http.Request) {
-
-	// contentType := r.Header.Get("Content-Type")
-	// if contentType != "text/plain" {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	originalURL := string(body)
-	shortURL := generateShortURL(originalURL)
-
-	mu.Lock()
-	urlStorage[shortURL] = originalURL
-	mu.Unlock()
-
-	response := fmt.Sprintf("http://localhost:8080/%s", shortURL)
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(response))
-}
-
-func generateShortURL(url string) string {
-	hash := sha1.New()
-	hash.Write([]byte(url))
-	return hex.EncodeToString(hash.Sum(nil))[:8]
-}
-
-func fget(w http.ResponseWriter, r *http.Request) {
-
-	// contentType := r.Header.Get("Content-Type")
-	// if contentType != "text/plain" {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// }
-
-	re := regexp.MustCompile(`^/([a-zA-Z0-9]+)$`)
-	matches := re.FindStringSubmatch(r.URL.Path)
-	if len(matches) != 2 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	shortURL := matches[1]
-
-	mu.RLock()
-	originalURL, exists := urlStorage[shortURL]
-	mu.RUnlock()
-
-	if !exists {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Location", originalURL)
-	w.WriteHeader(http.StatusTemporaryRedirect)
 }
