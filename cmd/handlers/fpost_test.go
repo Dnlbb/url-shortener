@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFpost(t *testing.T) {
@@ -118,6 +119,9 @@ func TestFpost(t *testing.T) {
 					t.Errorf("short URL was not saved in the repository")
 				}
 			}
+			err := result.Body.Close()
+			require.NoError(t, err)
+
 		})
 	}
 

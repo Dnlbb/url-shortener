@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFget(t *testing.T) {
@@ -101,6 +102,8 @@ func TestFget(t *testing.T) {
 
 			location := result.Header.Get("Location")
 			assert.Equal(t, test.want.location, location)
+			err := result.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }
