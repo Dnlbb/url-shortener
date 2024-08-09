@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/Dnlbb/url-shortener/cmd/storage"
@@ -46,6 +47,13 @@ func (h *Handler) Fpost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	originalURL := string(body)
+
+	parsedURL, err := url.ParseRequestURI(originalURL)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	shortURL := GenerateShortURL(originalURL)
 
 	h.repo.Save(shortURL, originalURL)
